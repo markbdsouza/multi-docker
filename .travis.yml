@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before install:
+  - docker build -t markbdsouza/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run markbdsouza/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t markbdsouza/multi-container-client ./client
+  - docker build -t markbdsouza/multi-container-nginx ./nginx
+  - docker build -t markbdsouza/multi-container-server ./server
+  - docker build -t markbdsouza/multi-container-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push markbdsouza/multi-container-client
+  - docker push markbdsouza/multi-container-nginx
+  - docker push markbdsouza/multi-container-server
+  - docker push markbdsouza/multi-container-worker
